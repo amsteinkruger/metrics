@@ -107,7 +107,7 @@ ggsave("output/vis_population.png",
 ```
 
 <img src="output/vis_population.png"
-data-fig-alt="A simulated bivariate distribution." />
+data-fig-alt="A simulated bivariate distribution." width="400" />
 
 The population looks about right. The x-values and y-values less than
 zero aren’t a substantial issue.
@@ -132,7 +132,8 @@ ggsave("output/vis_coef.png",
 ```
 
 <img src="output/vis_coef.png"
-data-fig-alt="Estimated coefficients for models of a bivariate distribution." />
+data-fig-alt="Estimated coefficients for models of a bivariate distribution."
+width="400" />
 
 The sample estimates of alpha vary with the sample estimates of beta,
 which really is the whole result.
@@ -160,7 +161,7 @@ ggsave("output/vis_error.png",
 ```
 
 <img src="output/vis_error.png"
-data-fig-alt="Errors in estimated coefficients." />
+data-fig-alt="Errors in estimated coefficients." width="400" />
 
 This turn out to be the same distribution as above, which I didn’t
 realize before running it. Neat.
