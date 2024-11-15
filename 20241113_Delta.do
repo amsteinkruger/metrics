@@ -1,24 +1,36 @@
 * (2)
 
-use cps09mar.dta, clear
+use "data/cps09mar.dta", clear
 
-* Begin reference material
+keep if female == 0 & hisp == 1 & race == 1 
 
-* Hansen p. 92:
-
-gen wage = ln(earnings/(hours*week))
+gen wage = ln(earnings / (hours * week))
 gen experience = age - education - 6
-gen exp2 = (experience^2)/100
-gen mbf = (race  == 2) & (marital <= 2) & (female == 1)
+gen experience_sq = experience ^ 2 / 100
 
-reg wage education experience exp2 if(mbf == 1)
+* (a)
 
-* Use nlcom for calculations  - nonlinear combination of estimators*
+reg wage education experience experience_sq, robust
 
-nlcom 100*_b[education]
-nlcom 100*_b[experience] + 20*_b[exp2]
-nlcom -50*_b[experience]/_b[exp2]
+* (b-d)
+* See Section 7.11 in Hansen.
 
-* Don't quite match results in text *
+nlcom ///
+(Ratio: ///
+(_b[education] * 1 + _b[experience] * 10 + _b[experience_sq] * 10 ^ 2 / 100 + _b[_cons]) ///
+/ ///
+(_b[education] * 0 + _b[experience] * 11 + _b[experience_sq] * 11 ^ 2 / 100 + _b[_cons])), ///
+level(90)
 
-* End reference material
+* (c)
+
+matrix list e(V)
+
+* (4)
+
+use "data/Hoy_Mager_Data.dta", clear
+
+* (b)
+
+* under35 male pB40 perc-HI pref-LI vote-incumbent HHsiz
+* Country codes are 1 through 10
