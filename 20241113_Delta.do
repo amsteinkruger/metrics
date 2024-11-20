@@ -15,12 +15,14 @@ reg wage education experience experience_sq, robust
 * (b-d)
 * See Section 7.11 in Hansen.
 
-nlcom ///
-(Ratio: ///
-(_b[education] * 1 + _b[experience] * 10 + _b[experience_sq] * 10 ^ 2 / 100 + _b[_cons]) ///
-/ ///
-(_b[education] * 0 + _b[experience] * 11 + _b[experience_sq] * 11 ^ 2 / 100 + _b[_cons])), ///
-level(90)
+* nlcom ///
+* (Ratio: ///
+* (_b[education] * 1 + _b[experience] * 10 + _b[experience_sq] * 10 ^ 2 / 100 + _b[_cons]) ///
+* / ///
+* (_b[education] * 0 + _b[experience] * 11 + _b[experience_sq] * 11 ^ 2 / 100 + _b[_cons])), ///
+* level(90)
+
+nlcom (Ratio: _b[education] / (_b[experience] + _b[experience_sq] / 5)), level(90)
 
 * (c)
 
