@@ -1,77 +1,23 @@
-# Get packages.
+---
+format: pdf
+editor: visual
+---
+
+**(2) (b)**
+
+```{r set, include = FALSE}
 
 library(tidyverse)
 library(magrittr)
 library(ggpubr)
 
+```
 
-# (b)
+This code simulates the given data-generating processes with 10,000 draws in 100 "samples" from the normal distribution of mean 0 and variance 1 for income and both error terms, filters out negative values for income and family size, then fits two linear models: one that omits family size and one that does not.
 
+The resulting coefficients appear in the following plots (generated with hidden code).
 
-# Pick a number of observations. 
-
-n = 20000
-
-# Get a plausible income distribution in hundreds of thousands of dollars (?).
-
-I = rnorm(n, 0, 1)
-
-# Get errors.
-
-e = rnorm(n, 0, 1)
-u = rnorm(n, 0, 1)
-
-# Consolidate into a tibble and drop implausible observations.
-
-dat = 
-  tibble(I, u, e) %>% 
-  mutate(F = 2 - 5 * I + u,
-         E = 5 + 4 * I + 2 * F + e) %>% 
-  filter(I > 0 & F > 0)
-
-rm(n, I , u, e)
-
-# Plot relationships of interest.
-
-vis_I_F = 
-  dat %>% 
-  ggplot() + 
-  geom_point(aes(x = I,
-                 y = F),
-             alpha = 0.10) +
-  theme_pubr()
-
-vis_I_E = 
-  dat %>% 
-  ggplot() +
-  geom_point(aes(x = I,
-                 y = E),
-             alpha = 0.10) + 
-  theme_pubr()
-
-vis_F_E = 
-  dat %>% 
-  ggplot() + 
-  geom_point(aes(x = F,
-                 y = E),
-             alpha = 0.10) +
-  theme_pubr()
-
-vis = ggarrange(vis_I_F, vis_I_E, vis_F_E, nrow = 1)
-
-# Estimate relationships of interest.
-
-mod_omit = lm(E ~ I, dat)
-
-mod = lm(E ~ I + F, dat)
-
-# Check a correlation of interest.
-
-cor(dat$I, dat$F)
-
-# Same but with iteration.
-
-rm(list = ls())
+```{r b}
 
 set.seed(7)
 
@@ -85,7 +31,7 @@ dat =
          I = rnorm(n_population),
          F = 2 - 5 * I + u,
          E = 5 + 4 * I + 2 * F + e) %>% 
-  filter(I > 0 & F > 0) %>% # Clean out nonsense values of variables. This results in groups of unequal size.
+  filter(I > 0 & F > 0) %>% # Clean out nonsense values.
   group_by(group) %>% 
   nest %>% 
   mutate(cor_i_f = map(data, ~ cor(.x$I, .x$F)),
@@ -101,6 +47,10 @@ dat =
   select(group, cor_i_f, starts_with("bet")) %>% 
   unnest(everything()) %>% 
   ungroup
+
+```
+
+```{r b_plot, echo = FALSE}
 
 # Plot distributions of interest.
 
@@ -152,52 +102,26 @@ ggsave("output/vis_ovb_b.png",
        dpi = 300,
        width = 8,
        height = 4)
-  
-# (c)
 
+```
 
-# Clean up.
+![](output/vis_ovb_b.png){fig-alt="Simulation results." width="600"}
 
-rm(list = ls())
+The plot at left shows a histogram of correlations of income and family size: the data-generating processes result in a strong negative correlation between income and family size, bearing out a condition for a negative coefficient estimate in the model with omission as in (a). The plot at right shows histograms and means of coefficient estimates for the model with omission (orange, centered around -2) and for the model without omission (blue, centered around 4); that is, the difference in means and distributions bears out the intuition in (a).
 
-# Pick a number of observations. 
+{{< pagebreak >}}
 
-n = 100000
-age = runif(n, 65 - 16, 65)
-edu = runif(n, 10, 20)
-exp = age - edu - rnorm(n) # Noise reflects experience and education less than age (and avoids singularity).
-e = rnorm(n)
-u = rnorm(n)
-fem_0 = 2 + 0 * exp + u
-fem_1 = 2 + (-4) * exp + u
-inc_0 = 1 + 3 * exp + 6 * edu + 3 * age + (-6) * fem_0 + e
-inc_1 = 1 + 3 * exp + 6 * edu + 3 * age + (-6) * fem_1 + e
+**(2) (d)**
 
-# Estimate relationships of interest.
+This code adopts the same approach to the given data-generating processes, again with 10,000 draws in 100 "samples" from the normal distribution for both error terms and a noise term in Experience. Values for Age and Education are drawn from uniform distributions with appropriate bounds; Experience is then their difference less the noise term. As in (b), the code then applies linear models to the data. Unlike in (b), this results in two pairs of models, one with an effect of 0 of Experience on Female and one with an effect of -4. The estimated coefficients are then compared in histograms.
 
-cor(inc_0, fem_0)
-cor(inc_1, fem_1)
-
-mod_uncor_omit = lm(inc_0 ~ exp + edu + age)
-mod_uncor = lm(inc_0 ~ exp + edu + age + fem_0)
-
-mod_cor_omit = lm(inc_1 ~ exp + edu + age)
-mod_cor = lm(inc_1 ~ exp + edu + age + fem_1)
-
-# Same but with iteration.
-
-rm(list = ls())
-
-set.seed(7)
-
-n_population = 10000
-n_samples = 100
+```{r c}
 
 dat = 
   tibble(group = rep(1:n_samples, each = n_population / n_samples),
          age = runif(n_population, 65 - 16, 65),
          edu = runif(n_population, 10, 20),
-         exp = age - edu - rnorm(n_population), # Noise reflects experience and education less than age.
+         exp = age - edu - rnorm(n_population), 
          e = rnorm(n_population),
          u = rnorm(n_population),
          fem_0 = 2 + 0 * exp + u,
@@ -224,16 +148,39 @@ dat =
   unnest(everything()) %>% 
   ungroup
 
+```
+
+```{r c_plot, echo = FALSE}
+
 # Plot distributions of interest.
 
-#  Actually, just report means of correlations to avoid a goofy histogram.
-dat$cor_0 %>% mean
-dat$cor_1 %>% mean
+vis_mean_uncor_omit = 
+  dat %>% 
+  pivot_longer(everything()) %>% 
+  filter(name == "beta_uncor_omit") %>% 
+  summarize(value = value %>% mean) %>% 
+  magrittr::extract2(1)
 
-vis_mean_uncor_omit = dat %>% pivot_longer(everything()) %>% filter(name == "beta_uncor_omit") %>% summarize(value = value %>% mean) %>% magrittr::extract2(1)
-vis_mean_uncor = dat %>% pivot_longer(everything()) %>% filter(name == "beta_uncor") %>% summarize(value = value %>% mean) %>% magrittr::extract2(1)
-vis_mean_cor_omit = dat %>% pivot_longer(everything()) %>% filter(name == "beta_cor_omit") %>% summarize(value = value %>% mean) %>% magrittr::extract2(1)
-vis_mean_cor = dat %>% pivot_longer(everything()) %>% filter(name == "beta_cor") %>% summarize(value = value %>% mean) %>% magrittr::extract2(1)
+vis_mean_uncor = 
+  dat %>% 
+  pivot_longer(everything()) %>% 
+  filter(name == "beta_uncor") %>% 
+  summarize(value = value %>% mean) %>% 
+  magrittr::extract2(1)
+
+vis_mean_cor_omit = 
+  dat %>% 
+  pivot_longer(everything()) %>% 
+  filter(name == "beta_cor_omit") %>% 
+  summarize(value = value %>% mean) %>% 
+  magrittr::extract2(1)
+
+vis_mean_cor = 
+  dat %>% 
+  pivot_longer(everything()) %>% 
+  filter(name == "beta_cor") %>% 
+  summarize(value = value %>% mean) %>% 
+  magrittr::extract2(1)
 
 vis_uncor = 
   dat %>% 
@@ -294,3 +241,11 @@ ggsave("output/vis_ovb_d.png",
        dpi = 300,
        width = 8,
        height = 4)
+
+```
+
+![](output/vis_ovb_d.png){fig-alt="Simulation results." width="600"}
+
+The plot at left shows histograms of coefficient estimates for the effect of Experience on Income with no correlation between Experience and Female, with estimates with omission in orange (the more dispersed distribution) and estimates without omission in blue. While the model with omission is far from efficient, the means of the two models are different only due to noise; that is, with no correlation between Experience and Female, omission does not bias the model.
+
+The plot at right shows similar histograms with correlation between Experience and Female, with estimates with omission in yellow (centered around 27) and estimates without omission in purple (centered around 3). This bears out the result shown in (c): a negative correlation between Experience results in a positive bias in the model.
