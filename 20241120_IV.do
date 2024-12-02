@@ -1,5 +1,7 @@
 * (4)
 
+log using "C:\Users\amste\OneDrive\Documents\GitHub\metrics\20241120_IV.smcl", replace
+
 use "data/Medical_Expenditure_Data.dta", clear
 
 keep ldrugexp hi_empunion totchr age female blhisp linc ssiratio lowincome firmsz  
