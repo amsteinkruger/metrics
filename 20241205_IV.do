@@ -21,9 +21,9 @@ order wage education age experience experience_transform black south urban colle
 
 * (a)
 
-ivregress 2sls wage experience experience_transform black south urban (education = public private), first
+ivregress 2sls wage experience experience_transform black south urban (education = public private), vce(robust)
 
-regress education experience experience_transform black south urban public private, r // Redundant but illustrative.
+regress education experience experience_transform black south urban public private, r
 
 test public private
 
@@ -47,37 +47,37 @@ test public_age public_age_transform public private
 ivregress 2sls ///
 wage experience experience_transform black south urban ///
 (education = public_age public_age_transform public private), /// 
-first
+vce(robust)
 
 * (e)
 
-estat firststage
+estat firststage, forcenonrobust
 
 * (f)
 
 ivregress liml ///
 wage experience experience_transform black south urban ///
 (education = public_age public_age_transform public private), /// 
-first
+vce(robust)
 
-estat firststage
+estat firststage, forcenonrobust
 
 * (3)
 
-* (a)
+* (a, b)
 
-ivregress gmm wage experience experience_transform black south urban (education = public private), first
+ivregress gmm wage experience experience_transform black south urban (education = public private), vce(robust)
 
-estat firststage
+estat firststage, forcenonrobust
+
+estat overid
 
 ivregress gmm ///
 wage experience experience_transform black south urban ///
 (education = public_age public_age_transform public private), /// 
-first
+vce(robust)
 
-estat firststage
-
-* (b)
+estat firststage, forcenonrobust
 
 estat overid
 
