@@ -162,28 +162,71 @@ temphumid tempsqhumidsq // * Interactions
 
 * Set up percentiles for Panel A.
 
+bysort idmunic_centroid: egen p5nota = pctile(nota), p(5)
 bysort idmunic_centroid: egen p50nota = pctile(nota), p(50)
+bysort idmunic_centroid: egen p95nota = pctile(nota), p(95)
 
-* Get estimates.
+* Get estimates for PM10.
 
+eststo, title("Model A-2"): qui: reghdfe notasd pm_10 $weather i.dia if nota < p50nota, absorb(id_student) cluster(idmunic_centroid)
 eststo, title("Model A-3"): qui: reghdfe notasd pm_10 $weather i.dia if nota > p50nota, absorb(id_student) cluster(idmunic_centroid)
-eststo, title("Model A-8"): qui: reghdfe notasd pm21 $weather i.dia if nota > p50nota, absorb(id_student) cluster(idmunic_centroid)  
-
-* Set up percentiles for Panel B.
-
-bysort idmunic_centroid: egen p50income = pctile(household_income), p(50)
-
-* Get estimates.
-
-eststo, title("Model B-3"): qui: reghdfe notasd pm_10 $weather i.dia if household_income > p50income, absorb(id_student) cluster(idmunic_centroid) 
-eststo, title("Model B-8"): qui: reghdfe notasd pm21 $weather i.dia if household_income > p50income, absorb(id_student) cluster(idmunic_centroid) 
+eststo, title("Model A-4"): qui: reghdfe notasd pm_10 $weather i.dia if nota < p5nota, absorb(id_student) cluster(idmunic_centroid)
+eststo, title("Model A-5"): qui: reghdfe notasd pm_10 $weather i.dia if nota > p95nota, absorb(id_student) cluster(idmunic_centroid)   
 
 * Tabulate estimates.
 
 estout est1 est2 est3 est4, ///
-keep(pm_10 pm21) ///
+keep(pm_10) ///
 cells(b(star fmt(2)) se(par fmt(2))) starlevels(* 0.10 ** 0.05 *** 0.01) ///
-label legend collabels(none) varlabels(pm_10 "PM10" pm21 "1 if PM10 > 20")
+label legend collabels(none) varlabels(pm_10 "PM10")
+
+* Get estimates for PM21.
+
+eststo, title("Model A-7"): qui: reghdfe notasd pm21 $weather i.dia if nota < p50nota, absorb(id_student) cluster(idmunic_centroid)  
+eststo, title("Model A-8"): qui: reghdfe notasd pm21 $weather i.dia if nota > p50nota, absorb(id_student) cluster(idmunic_centroid)
+eststo, title("Model A-9"): qui: reghdfe notasd pm21 $weather i.dia if nota < p5nota, absorb(id_student) cluster(idmunic_centroid)  
+eststo, title("Model A-10"): qui: reghdfe notasd pm21 $weather i.dia if nota > p95nota, absorb(id_student) cluster(idmunic_centroid) 
+
+* Tabulate estimates.
+
+estout est5 est6 est7 est8, ///
+keep(pm21) ///
+cells(b(star fmt(2)) se(par fmt(2))) starlevels(* 0.10 ** 0.05 *** 0.01) ///
+label legend collabels(none) varlabels(pm21 "1 if PM10 > 20")
+
+* Set up percentiles for Panel B.
+
+bysort idmunic_centroid: egen p5income = pctile(household_income), p(5)
+bysort idmunic_centroid: egen p50income = pctile(household_income), p(50)
+bysort idmunic_centroid: egen p95income = pctile(household_income), p(95)
+
+* Get estimates for PM10.
+
+eststo, title("Model B-2"): qui: reghdfe notasd pm_10 $weather i.dia if household_income < p50income, absorb(id_student) cluster(idmunic_centroid) 
+eststo, title("Model B-3"): qui: reghdfe notasd pm_10 $weather i.dia if household_income > p50income, absorb(id_student) cluster(idmunic_centroid) 
+eststo, title("Model B-4"): qui: reghdfe notasd pm_10 $weather i.dia if household_income < p5income, absorb(id_student) cluster(idmunic_centroid) 
+eststo, title("Model B-5"): qui: reghdfe notasd pm_10 $weather i.dia if household_income > p95income, absorb(id_student) cluster(idmunic_centroid)
+
+* Tabulate estimates.
+
+estout est9 est10 est11 est12, ///
+keep(pm_10) ///
+cells(b(star fmt(2)) se(par fmt(2))) starlevels(* 0.10 ** 0.05 *** 0.01) ///
+label legend collabels(none) varlabels(pm_10 "PM10")
+
+* Get estimates for PM21.
+
+eststo, title("Model B-7"): qui: reghdfe notasd pm21 $weather i.dia if household_income < p50income, absorb(id_student) cluster(idmunic_centroid) 
+eststo, title("Model B-8"): qui: reghdfe notasd pm21 $weather i.dia if household_income > p50income, absorb(id_student) cluster(idmunic_centroid) 
+eststo, title("Model B-9"): qui: reghdfe notasd pm21 $weather i.dia if household_income < p5income, absorb(id_student) cluster(idmunic_centroid) 
+eststo, title("Model B-10"): qui: reghdfe notasd pm21 $weather i.dia if household_income > p95income, absorb(id_student) cluster(idmunic_centroid) 
+
+* Tabulate estimates.
+
+estout est13 est14 est15 est16, ///
+keep(pm21) ///
+cells(b(star fmt(2)) se(par fmt(2))) starlevels(* 0.10 ** 0.05 *** 0.01) ///
+label legend collabels(none) varlabels(pm21 "1 if PM10 > 20")
 
 * (g)
 
