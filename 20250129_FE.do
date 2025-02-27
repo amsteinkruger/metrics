@@ -6,47 +6,47 @@ clear all
 
 * Set up a program.
 program montecarlo, rclass
-* Preliminaries
-drop _all
-set obs 100
-* Get time-invariant variables.
-gen id = _n
-gen u = rnormal()
-* Expand to get period t in 1, 2 for each i in 100.
-expand 2
-* Sort.
-sort id
-* Get time-variant variables.
-gen x1 = rnormal()
-gen x2 = rnormal() + u
-gen e = rnormal()
-gen y = 4 + 1 * x1 + 1.5 * x2 + u + e // Mind hard-coding.
-* Compute first differences.
-by id: gen y_fd = y - y[_n - 1]
-by id: gen x1_fd = x1 - x1[_n - 1]
-by id: gen x2_fd = x2 - x2[_n - 1]
-by id: gen u_fd = u - u[_n - 1]
-by id: gen e_fd = e - e[_n - 1]
-* Estimate with RE, FE, and FD.
-*  RE
-xtset id
-xtreg y x1 x2, re
-return scalar b1_re = _b[x1]
-return scalar s1_re = _se[x1]
-return scalar b2_re = _b[x2]
-return scalar s2_re = _se[x2]
-*  FE
-xtreg y x1 x2, fe
-return scalar b1_fe = _b[x1]
-return scalar s1_fe = _se[x1]
-return scalar b2_fe = _b[x2]
-return scalar s2_fe = _se[x2]
-*  FD
-reg y_fd x1_fd x2_fd
-return scalar b1_fd = _b[x1]
-return scalar s1_fd = _se[x1]
-return scalar b2_fd = _b[x2]
-return scalar s2_fd = _se[x2]
+	* Preliminaries
+	drop _all
+	set obs 100
+	* Get time-invariant variables.
+	gen id = _n
+	gen u = rnormal()
+	* Expand to get period t in 1, 2 for each i in 100.
+	expand 2
+	* Sort.
+	sort id
+	* Get time-variant variables.
+	gen x1 = rnormal()
+	gen x2 = rnormal() + u
+	gen e = rnormal()
+	gen y = 4 + 1 * x1 + 1.5 * x2 + u + e // Mind hard-coding.
+	* Compute first differences.
+	by id: gen y_fd = y - y[_n - 1]
+	by id: gen x1_fd = x1 - x1[_n - 1]
+	by id: gen x2_fd = x2 - x2[_n - 1]
+	by id: gen u_fd = u - u[_n - 1]
+	by id: gen e_fd = e - e[_n - 1]
+	* Estimate with RE, FE, and FD.
+	*  RE
+	xtset id
+	xtreg y x1 x2, re
+	return scalar b1_re = _b[x1]
+	return scalar s1_re = _se[x1]
+	return scalar b2_re = _b[x2]
+	return scalar s2_re = _se[x2]
+	*  FE
+	xtreg y x1 x2, fe
+	return scalar b1_fe = _b[x1]
+	return scalar s1_fe = _se[x1]
+	return scalar b2_fe = _b[x2]
+	return scalar s2_fe = _se[x2]
+	*  FD
+	reg y_fd x1_fd x2_fd
+	return scalar b1_fd = _b[x1]
+	return scalar s1_fd = _se[x1]
+	return scalar b2_fd = _b[x2]
+	return scalar s2_fd = _se[x2]
 end
 
 * Execute the program.
