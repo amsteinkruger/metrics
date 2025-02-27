@@ -15,37 +15,43 @@ program montecarlo, rclass
 	
 	* Get time-invariant variables.
 	
-	gen id = _n
+	gen i = _n
 	
-	gen group = ceil(id * 0.001)
+	* Groups
 	
-	gen group_placebo = 0
-	replace group_placebo = 1 if (group == 3 | group == 4)
-	
-	gen group_treatment = 0
-	replace group_treatment = 1 if (group == 2 | group == 4)
-	
+	gen group = ceil(i * 0.001)
 	gen group_string = "D = 0"
 	replace group_string = "D = 1" if group > 1
 	replace group_string = "D = 0, Placebo" if group > 2
 	replace group_string = "D = 1, Placebo" if group > 3
+	
+	* Placebo
+	
+	gen p = 0
+	replace p = 1 if (group == 3 | group == 4)
+	
+	* Treatment
+	
+	gen d = 0
+	replace d = 1 if (group == 2 | group == 4)
+	
 
 	* Expand for t in 1, 2 for all i. Sort on i.
 	
 	expand 2
 	
-	sort id
+	sort i
 	
 	* Get time-variant variables.
 	
 	*  RHS
 	
-	by id: gen t = _n - 1
+	by i: gen t = _n - 1
 	
 	gen error = rnormal()
 	
 	gen x_att = 0
-	replace x_att = 0.50 if t == 1 & group_placebo == 0 & group_treatment == 1
+	replace x_att = 0.50 if t == 1 & p == 0 & d == 1
 
 	*   i. Parallel trends holds for the primary treatment and placebo groups.
 	
@@ -55,12 +61,12 @@ program montecarlo, rclass
 	*   ii. Parallel trends holds for the primary treatment group but not the placebo group.
 	
 	gen x_trend_ii = 0
-	replace x_trend_ii = 1 if t == 1 & (group_placebo == 0 | group_treatment == 1)
+	replace x_trend_ii = 1 if t == 1 & (p == 0 | d == 1)
 	
 	*   iii. Parallel trends holds for neither group but the parallel trends violations are equivalent.
 	
 	gen x_trend_iii = 0
-	replace x_trend_iii = 1 if t == 1 & group_treatment == 1
+	replace x_trend_iii = 1 if t == 1 & d == 1
 	
 	*   iv. Parallel trends holds for neither group and the parallel trends violations are not equivalent.
 	
@@ -76,41 +82,55 @@ program montecarlo, rclass
 	
 	* Estimate. Note that "d" represents treatment.
 	
+	* begin scratch
+	
+	* DB: Wage_it = B_0 + B_1 * M_i + B_2 * Post_t + B_3 * W_i + B_4 * M_i * Post_t + B_5 * W_i * Post_t + B_6 * M_i * W_i + B_7 * M_i * W_i * Post_t + e_it => B_7_hat = tau_DDD_hat
+	*     where M_i is treatment (d), Post_t is period (t), and W_i is placebo (p), that is,
+	*     Y_i = B_0 + B_1 * d_i + B_2 * t + B_3 * p + B_4 * d * t + B_5 * p * t + B_6 * d * p + B_7 * d * p * t + e_it
+	
+	reg y_i d p t  d#p d#t p#t d#p#t
+	
+	* or
+	
+	reghdfe y_i d#t p#t d#p#t, absorb(period) // and B_3 = tau_DDD
+	
+	* end scratch
+	
 	*  i.
 	
-	reg y_i t group_treatment t#group_treatment if group_placebo == 0
+	reg y_i t d t#d if p == 0
 	return scalar b_t_0_i = _b[t]
-	return scalar b_d_0_i = _b[group_treatment]
-	reg y_i t group_treatment t#group_treatment if group_placebo == 1
+	return scalar b_d_0_i = _b[d]
+	reg y_i t d t#d if p == 1
 	return scalar b_t_1_i = _b[t]
-	return scalar b_d_1_i = _b[group_treatment]
+	return scalar b_d_1_i = _b[d]
 	
 	*  ii.
 	
-	reg y_ii t group_treatment t#group_treatment if group_placebo == 0
+	reg y_ii t d t#d if p == 0
 	return scalar b_t_0_ii = _b[t]
-	return scalar b_d_0_ii = _b[group_treatment]
-	reg y_ii t group_treatment t#group_treatment if group_placebo == 1
+	return scalar b_d_0_ii = _b[d]
+	reg y_ii t d t#d if p == 1
 	return scalar b_t_1_ii = _b[t]
-	return scalar b_d_1_ii = _b[group_treatment]
+	return scalar b_d_1_ii = _b[d]
 	
 	*  iii.
 	
-	reg y_iii t group_treatment t#group_treatment if group_placebo == 0
+	reg y_iii t d t#d if p == 0
 	return scalar b_t_0_iii = _b[t]
-	return scalar b_d_0_iii = _b[group_treatment]
-	reg y_iii t group_treatment t#group_treatment if group_placebo == 1
+	return scalar b_d_0_iii = _b[d]
+	reg y_iii t d t#d if p == 1
 	return scalar b_t_1_iii = _b[t]
-	return scalar b_d_1_iii = _b[group_treatment]
+	return scalar b_d_1_iii = _b[d]
 	
 	*  iv.
 	
-	reg y_iv t group_treatment t#group_treatment if group_placebo == 0
+	reg y_iv t d t#d if p == 0
 	return scalar b_t_0_iv = _b[t]
-	return scalar b_d_0_iv = _b[group_treatment]
-	reg y_iv t group_treatment t#group_treatment if group_placebo == 1
+	return scalar b_d_0_iv = _b[d]
+	reg y_iv t d t#d if p == 1
 	return scalar b_t_1_iv = _b[t]
-	return scalar b_d_1_iv = _b[group_treatment]
+	return scalar b_d_1_iv = _b[d]
 
 end
 
