@@ -28,14 +28,13 @@ program montecarlo, rclass
 	* Placebo
 	
 	gen p = 0
-	replace p = 1 if (group == 3 | group == 4)
+	replace p = 1 if (group == 1 | group == 2) // This isn't intuitive but leads to a correct sign on estimates of ATT.
 	
 	* Treatment
 	
 	gen d = 0
 	replace d = 1 if (group == 2 | group == 4)
 	
-
 	* Expand for t in 1, 2 for all i. Sort on i.
 	
 	expand 2
@@ -51,7 +50,7 @@ program montecarlo, rclass
 	gen error = rnormal()
 	
 	gen x_att = 0
-	replace x_att = 0.50 if t == 1 & p == 0 & d == 1
+	replace x_att = 0.50 if p == 1 & d == 1 & t == 1 
 
 	*   i. Parallel trends holds for the primary treatment and placebo groups.
 	
@@ -61,17 +60,19 @@ program montecarlo, rclass
 	*   ii. Parallel trends holds for the primary treatment group but not the placebo group.
 	
 	gen x_trend_ii = 0
-	replace x_trend_ii = 1 if t == 1 & (p == 0 | d == 1)
+	replace x_trend_ii = 1 if p == 1 & t == 1
+	replace x_trend_ii = group ^ (1 / 2) if p == 0 & t == 1 // This is just a convenient way to get non-parallel trends.
 	
 	*   iii. Parallel trends holds for neither group but the parallel trends violations are equivalent.
 	
 	gen x_trend_iii = 0
-	replace x_trend_iii = 1 if t == 1 & d == 1
+	replace x_trend_iii = 1 if d == 0 & t == 1
+	replace x_trend_iii = 2 if d == 1 & t == 1
 	
 	*   iv. Parallel trends holds for neither group and the parallel trends violations are not equivalent.
 	
 	gen x_trend_iv = 0
-	replace x_trend_iv = group if t == 1
+	replace x_trend_iv = group ^ (1 / 2) if t == 1 // This is still just a convenient way to get non-parallel trends.
 	
 	*  LHS
 	
@@ -80,107 +81,76 @@ program montecarlo, rclass
 	gen y_iii = x_att + x_trend_iii + error
 	gen y_iv = x_att + x_trend_iv + error
 	
-	* Estimate. Note that "d" represents treatment.
+	* Estimate. I didn't plan around Stata's factor notation when I used (i)-(iv) in var names.
 	
-	* begin scratch
+	*  Y = B_0 + B_1 * d + B_2 * t + B_3 * p + B_4 * d * t + B_5 * p * t + B_6 * d * p + B_7 * d * p * t + e_it
 	
-	* DB: Wage_it = B_0 + B_1 * M_i + B_2 * Post_t + B_3 * W_i + B_4 * M_i * Post_t + B_5 * W_i * Post_t + B_6 * M_i * W_i + B_7 * M_i * W_i * Post_t + e_it => B_7_hat = tau_DDD_hat
-	*     where M_i is treatment (d), Post_t is period (t), and W_i is placebo (p), that is,
-	*     Y_i = B_0 + B_1 * d_i + B_2 * t + B_3 * p + B_4 * d * t + B_5 * p * t + B_6 * d * p + B_7 * d * p * t + e_it
+	* (i)
 	
-	reg y_i d p t  d#p d#t p#t d#p#t
+	reg y_i i.d i.p i.t  i.d#i.p i.d#i.t i.p#i.t i.d#i.p#i.t
+	return scalar b_i = _b[1.d#1.p#1.t]
 	
-	* or
+	* (ii)
 	
-	reghdfe y_i d#t p#t d#p#t, absorb(period) // and B_3 = tau_DDD
+	reg y_ii i.d i.p i.t  i.d#i.p i.d#i.t i.p#i.t i.d#i.p#i.t
+	return scalar b_ii = _b[1.d#1.p#1.t]
 	
-	* end scratch
+	* (iii)
 	
-	*  i.
+	reg y_iii i.d i.p i.t  i.d#i.p i.d#i.t i.p#i.t i.d#i.p#i.t
+	return scalar b_iii = _b[1.d#1.p#1.t]
 	
-	reg y_i t d t#d if p == 0
-	return scalar b_t_0_i = _b[t]
-	return scalar b_d_0_i = _b[d]
-	reg y_i t d t#d if p == 1
-	return scalar b_t_1_i = _b[t]
-	return scalar b_d_1_i = _b[d]
+	* (iv)
 	
-	*  ii.
-	
-	reg y_ii t d t#d if p == 0
-	return scalar b_t_0_ii = _b[t]
-	return scalar b_d_0_ii = _b[d]
-	reg y_ii t d t#d if p == 1
-	return scalar b_t_1_ii = _b[t]
-	return scalar b_d_1_ii = _b[d]
-	
-	*  iii.
-	
-	reg y_iii t d t#d if p == 0
-	return scalar b_t_0_iii = _b[t]
-	return scalar b_d_0_iii = _b[d]
-	reg y_iii t d t#d if p == 1
-	return scalar b_t_1_iii = _b[t]
-	return scalar b_d_1_iii = _b[d]
-	
-	*  iv.
-	
-	reg y_iv t d t#d if p == 0
-	return scalar b_t_0_iv = _b[t]
-	return scalar b_d_0_iv = _b[d]
-	reg y_iv t d t#d if p == 1
-	return scalar b_t_1_iv = _b[t]
-	return scalar b_d_1_iv = _b[d]
+	reg y_iv i.d i.p i.t  i.d#i.p i.d#i.t i.p#i.t i.d#i.p#i.t
+	return scalar b_iv = _b[1.d#1.p#1.t]
 
 end
 
 * Run the program.
 	
 simulate ///
-b_t_0_i = r(b_t_0_i) b_d_0_i = r(b_d_0_i) b_t_1_i = r(b_t_1_i) b_d_1_i = r(b_d_1_i) ///
-b_t_0_ii = r(b_t_0_ii) b_d_0_ii = r(b_d_0_ii) b_t_1_ii = r(b_t_1_ii) b_d_1_ii = r(b_d_1_ii) ///
-b_t_0_iii = r(b_t_0_iii) b_d_0_iii = r(b_d_0_iii) b_t_1_iii = r(b_t_1_iii) b_d_1_iii = r(b_d_1_iii) ///
-b_t_0_iv = r(b_t_0_iv) b_d_0_iv = r(b_d_0_iv) b_t_1_iv = r(b_t_1_iv) b_d_1_iv = r(b_d_1_iv), ///
-reps(100) seed(112358): montecarlo
+b_i = r(b_i) b_ii = r(b_ii) b_iii = r(b_iii) b_iv = r(b_iv), ///
+reps(1000) seed(112358): montecarlo
 
 * Tabulate estimates.
 
-format b_d_* b_t_* %9.3f
+format b_* %9.3f // b_d_* b_t_*
 sum, separator(4) format
 
 * Visualize estimates.
 
 format b* %9.1f
 
-hist b_d_0_i, ///
+hist b_i, ///
 width(0.05) ///
-xtitle("(i)", size(huge)) xlabel(, labsize(huge)) ///
+xtitle("(i)", size(huge)) xlabel(0.00 0.50 1.00, labsize(huge)) ///
 ytitle("") ylabel(, labsize(huge)) ///
 color("153 153 153") graphregion(color(white)) bgcolor(white) ///
-saving(b_d_0_i, replace)
+saving(b_i, replace)
 
-hist b_d_0_ii, ///
+hist b_ii, ///
 width(0.05) ///
-xtitle("(ii)", size(huge)) xlabel(, labsize(huge)) ///
+xtitle("(ii)", size(huge)) xlabel(0.00 0.50 1.00, labsize(huge)) ///
 ytitle("") ylabel(, labsize(huge)) ///
 color("153 153 153") graphregion(color(white)) bgcolor(white) ///
-saving(b_d_0_ii, replace)
+saving(b_ii, replace)
 
-hist b_d_0_iii, ///
+hist b_iii, ///
 width(0.05) ///
-xtitle("(iii)", size(huge)) xlabel(, labsize(huge)) ///
+xtitle("(iii)", size(huge)) xlabel(0.00 0.50 1.00, labsize(huge)) ///
 ytitle("") ylabel(, labsize(huge)) ///
 color("153 153 153") graphregion(color(white)) bgcolor(white) ///
-saving(b_d_0_iii, replace)
+saving(b_iii, replace)
 
-hist b_d_0_iv, ///
+hist b_iv, ///
 width(0.05) ///
-xtitle("(iv)", size(huge)) xlabel(, labsize(huge)) ///
+xtitle("(iv)", size(huge)) xlabel(0.00 0.50 1.00, labsize(huge)) ///
 ytitle("") ylabel(, labsize(huge)) ///
 color("153 153 153") graphregion(color(white)) bgcolor(white) ///
-saving(b_d_0_iv, replace)
+saving(b_iv, replace)
 
-graph combine b_d_0_i.gph b_d_0_ii.gph b_d_0_iii.gph b_d_0_iv.gph, ///
+graph combine b_i.gph b_ii.gph b_iii.gph b_iv.gph, ///
 title("Estimated Treatment Effects for (i) - (iv)", size(huge)) ///
 xcommon ycommon rows(1) ///
 graphregion(color(white))
