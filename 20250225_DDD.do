@@ -151,7 +151,6 @@ color("153 153 153") graphregion(color(white)) bgcolor(white) ///
 saving(b_iv, replace)
 
 graph combine b_i.gph b_ii.gph b_iii.gph b_iv.gph, ///
-title("Estimated Treatment Effects for (i) - (iv)", size(huge)) ///
 xcommon ycommon rows(1) ///
 graphregion(color(white))
 
