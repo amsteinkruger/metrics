@@ -118,4 +118,7 @@ rename Bacon_B Coefficient_bacondecomp
 keep Comparison Control Weight_bacondecomp Coefficient_bacondecomp
 order Comparison Control Weight_bacondecomp Coefficient_bacondecomp
 
+format Weight_bacondecomp %9.6f
+format Coefficient_bacondecomp %9.6f
+
 list, abbreviate(24)
