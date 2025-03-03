@@ -88,69 +88,69 @@ program montecarlo, rclass
 	* (i)
 	
 	reg y_i i.d i.p i.t  i.d#i.p i.d#i.t i.p#i.t i.d#i.p#i.t
-	return scalar b_i = _b[1.d#1.p#1.t]
+	return scalar ATT_i = _b[1.d#1.p#1.t]
 	
 	* (ii)
 	
 	reg y_ii i.d i.p i.t  i.d#i.p i.d#i.t i.p#i.t i.d#i.p#i.t
-	return scalar b_ii = _b[1.d#1.p#1.t]
+	return scalar ATT_ii = _b[1.d#1.p#1.t]
 	
 	* (iii)
 	
 	reg y_iii i.d i.p i.t  i.d#i.p i.d#i.t i.p#i.t i.d#i.p#i.t
-	return scalar b_iii = _b[1.d#1.p#1.t]
+	return scalar ATT_iii = _b[1.d#1.p#1.t]
 	
 	* (iv)
 	
 	reg y_iv i.d i.p i.t  i.d#i.p i.d#i.t i.p#i.t i.d#i.p#i.t
-	return scalar b_iv = _b[1.d#1.p#1.t]
+	return scalar ATT_iv = _b[1.d#1.p#1.t]
 
 end
 
 * Run the program.
 	
 simulate ///
-b_i = r(b_i) b_ii = r(b_ii) b_iii = r(b_iii) b_iv = r(b_iv), ///
+ATT_i = r(ATT_i) ATT_ii = r(ATT_ii) ATT_iii = r(ATT_iii) ATT_iv = r(ATT_iv), ///
 reps(1000) seed(112358): montecarlo
 
 * Tabulate estimates.
 
-format b_* %9.3f // b_d_* b_t_*
+format ATT_* %9.3f // b_d_* b_t_*
 sum, separator(4) format
 
 * Visualize estimates.
 
-format b* %9.1f
+format ATT_* %9.1f
 
-hist b_i, ///
+hist ATT_i, ///
 width(0.05) ///
 xtitle("(i)", size(huge)) xlabel(0.00 0.50 1.00, labsize(huge)) ///
 ytitle("") ylabel(, labsize(huge)) ///
 color("153 153 153") graphregion(color(white)) bgcolor(white) ///
-saving(b_i, replace)
+saving(ATT_i, replace)
 
-hist b_ii, ///
+hist ATT_ii, ///
 width(0.05) ///
 xtitle("(ii)", size(huge)) xlabel(0.00 0.50 1.00, labsize(huge)) ///
 ytitle("") ylabel(, labsize(huge)) ///
 color("153 153 153") graphregion(color(white)) bgcolor(white) ///
-saving(b_ii, replace)
+saving(ATT_ii, replace)
 
-hist b_iii, ///
+hist ATT_iii, ///
 width(0.05) ///
 xtitle("(iii)", size(huge)) xlabel(0.00 0.50 1.00, labsize(huge)) ///
 ytitle("") ylabel(, labsize(huge)) ///
 color("153 153 153") graphregion(color(white)) bgcolor(white) ///
-saving(b_iii, replace)
+saving(ATT_iii, replace)
 
-hist b_iv, ///
+hist ATT_iv, ///
 width(0.05) ///
 xtitle("(iv)", size(huge)) xlabel(0.00 0.50 1.00, labsize(huge)) ///
 ytitle("") ylabel(, labsize(huge)) ///
 color("153 153 153") graphregion(color(white)) bgcolor(white) ///
-saving(b_iv, replace)
+saving(ATT_iv, replace)
 
-graph combine b_i.gph b_ii.gph b_iii.gph b_iv.gph, ///
+graph combine ATT_i.gph ATT_ii.gph ATT_iii.gph ATT_iv.gph, ///
 xcommon ycommon rows(1) ///
 graphregion(color(white))
 

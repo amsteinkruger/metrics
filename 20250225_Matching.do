@@ -92,10 +92,10 @@ egen ps_mean_0 = min(ps_mean) // Watch out for the hard-coding.
 egen ps_mean_1 = max(ps_mean) // "".
 
 quietly sum ps_mean_0
-display "Mean Propensity Score, Treated: " r(mean)
+display "Mean Propensity Score, Control: " r(mean)
 
 quietly sum ps_mean_1
-display "Mean Propensity Score, Control: " r(mean)
+display "Mean Propensity Score, Treated: " r(mean)
 
 drop ps_*
 
@@ -133,7 +133,7 @@ reshape long re, i(unit_id) j(year)
 
 gen treat_post = (year == 78 & treat == 1)
 
-reghdfe re treat if year != 75, absorb(unit_id year) cluster(unit_id)
+reghdfe re treat_post if year != 75, absorb(unit_id year) cluster(unit_id)
 
 drop treat_post
 

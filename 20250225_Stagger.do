@@ -61,6 +61,11 @@ gen n_2009_2006 = n_2009 / (n_2006 + n_2009)
 gen D_2006 = (2010 - 2006 + 1) / (2010 - 2000 + 1)
 gen D_2009 = (2010 - 2009 + 1) / (2010 - 2000 + 1)
 
+*  Get the variance quotient.
+
+egen V_u = mean(castle_post)
+gen V_D = V_u * (1 - V_u)
+
 *  Get weights without the variance quotient.
 
 gen s_2006_inf = (n_2006 + n_inf) ^ 2 * n_2006_inf * (1 - n_2006_inf) * D_2006 * (1 - D_2006)
