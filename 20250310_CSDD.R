@@ -151,3 +151,41 @@ mod_f <- att_gt(yname = "div_rate",
 
 summary(mod_f)
 
+# Count post-treatment periods.
+
+dat_f = tibble(group = mod_f$group, t = mod_f$t, att = mod_f$att)
+
+dat_f %>% filter(group <= t) %>% nrow
+
+# 148 periods where treatment year is equal to or greater than the current year. Is that the right subset?
+
+# Get a histogram for fun.
+
+vis_f = 
+  dat_f %>% 
+  mutate(which = ifelse(group <= t, "post", "pre") %>% factor %>% fct_rev) %>% 
+  ggplot() +
+  geom_histogram(aes(x = att)) +
+  facet_wrap(~ which)
+
+# Questions:
+#  Is this the right call to did?
+#  Are sample means hand-calculated for this exercise?
+#  Are "overall" ATTs really the (weighted?) mean of all values for ATT(g, t)
+
+# (g)
+
+# Get ATT(1976, 1980) with sample means.
+
+# (h)
+
+# Compare overall (?) ATTs between C-S '21 and TWFE.
+
+# (i)
+
+# estimate and plot event study
+
+# (j)
+
+# (i) but with borusyak et al. '24 with didimputation, with and without log_income included via interaction with year fixed effects in the model for Y(0).
+
