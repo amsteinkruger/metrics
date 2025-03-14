@@ -9,6 +9,7 @@ library(ggpubr)
 library(plm)
 library(lmtest)
 library(did)
+library(didimputation)
 
 # Data
 
@@ -52,7 +53,7 @@ dat =
 
 # (c)
 
-# Plot the cumulative proportion of states with no-fault laws against study years.
+# Plot the cumulative proportion of treated units against years.
 
 vis_c = 
   dat %>% 
@@ -141,12 +142,13 @@ coeftest(mod_e, vcov = vcovHC, type = "HC1")
 
 dat = dat %>% mutate(st_numeric = st %>% factor %>% as.numeric)
 
-mod_f <- att_gt(yname = "div_rate",
+mod_f <- att_gt(data = dat,
+                yname = "div_rate",
                 gname = "lfdivlaw",
                 idname = "st_numeric",
                 tname = "year",
                 xformla = ~1,
-                data = dat,
+                clustervars = "st_numeric",
                 est_method = "reg")
 
 summary(mod_f)
@@ -213,27 +215,103 @@ g_ATT = g_Y_it - g_Y_ig1 - g_N_G_comp ^ -1 * g_Y
 
 # (0.425)
 
-# note discrepancy even after fiddling with year inclusions/exclusions
+# Note discrepancy. Tweaking filters doesn't help.
 
 # (h)
 
-# Compare overall (?) ATTs between C-S '21 and TWFE.
+# Compare overall ATTs between C-S '21 and TWFE.
 
-# first, compute C-S '21 overall ATT
+#  CS '21 with weights by fraction of treated units in each group.
 
-# actually check if C-S provide some trivial command to get the same thing
+aggte(mod_f, type = "simple")$overall.att 
 
+#  CS '21 with weights by group size (equivalent to equal weights in this application).
 
+aggte(mod_f, type = "group")$overall.att 
 
-# grab TWFE ATT
+# TWFE
 
-mod_e$coefficients[[1]]
+mod_e$coefficients[[1]] 
 
 # (i)
 
 # estimate and plot event study
 
+mod_i = 
+  mod_f %>% 
+  aggte(type = "dynamic",
+        min_e = -5,
+        max_e = 5)
+
+summary(mod_i)
+
+ggdid(mod_i)
+
+# same but with log_income in the picture and doubly robust estimator
+
+mod_i_dr = 
+  att_gt(data = dat,
+         yname = "div_rate",
+         idname = "st_numeric",
+         gname = "lfdivlaw",
+         tname = "year",
+         xformla = ~ log_income,
+         clustervars = "st_numeric",
+         est_method = "dr") %>% 
+  aggte(type = "dynamic",
+        min_e = -5,
+        max_e = 5)
+
+summary(mod_i_dr)
+
+ggdid(mod_i_dr)
+
 # (j)
 
 # (i) but with borusyak et al. '24 with didimputation, with and without log_income included via interaction with year fixed effects in the model for Y(0).
 
+# Without log_income. Note that the arguments to first_stage and cluster_var are equivalent to defaults.
+
+mod_j_1 = 
+  did_imputation(data = dat,
+                 yname = "div_rate",
+                 idname = "st_numeric",
+                 gname = "lfdivlaw",
+                 tname = "year",
+                 first_stage = ~ 0 | st_numeric + year,
+                 horizon = TRUE,
+                 pretrends = -5:-1,
+                 cluster_var = "st_numeric") %>% 
+  mutate(model = "Without Covariates")
+
+mod_j_2 = 
+  did_imputation(data = dat,
+                 yname = "div_rate",
+                 idname = "st_numeric",
+                 gname = "lfdivlaw",
+                 tname = "year",
+                 first_stage = ~ log_income * year | st_numeric + year,
+                 horizon = TRUE,
+                 pretrends = -5:-1,
+                 cluster_var = "st_numeric") %>% 
+  mutate(model = "With Interaction Covariate")
+
+mod_j = 
+  bind_rows(mod_j_1, mod_j_2) %>% 
+  mutate(model = model %>% factor %>% fct_rev) %>% 
+  filter(term %in% -5:5) %>% 
+  mutate(treatment = ifelse(term < 0, "Pre", "Post") %>% factor %>% fct_rev,
+         term = term %>% factor %>% fct_relevel(-5:5 %>% as.character))
+
+vis_j = 
+  mod_j %>% 
+  ggplot() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_linerange(aes(x = term, ymin = conf.low, ymax = conf.high, color = treatment)) +
+  geom_point(aes(x = term, y = estimate, color = treatment)) +
+  scale_x_discrete(breaks = -5:5 %>% as.character) +
+  scale_y_continuous() +
+  facet_wrap(~ model) +
+  labs(x = "Event Time", y = "Estimate") +
+  theme_pubr() +
+  theme(legend.position = "none")
