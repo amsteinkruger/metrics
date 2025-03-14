@@ -177,9 +177,57 @@ vis_f =
 
 # Get ATT(1976, 1980) with sample means.
 
+# Grab the answer from (f) for convenience.
+
+dat_f %>% filter(group == 1976 & t == 1980) %>% pull(att)
+
+# (0.44)
+
+#  Count units in 1976 treatment group.
+
+dat %>% distinct(st, lfdivlaw) %>% filter(lfdivlaw == 1976) %>% nrow # It's just Rhode Island!
+
+# AT T(g, t) is the mean change in group g between period t and the period immediately
+# before treatment is received (g − 1) to the mean change over the same period for all units
+# in “clean” comparison groups
+
+# so Y_i, t is just div_rate for RI in 1980 (i in t). g - 1 is just 1975. 
+# the 1/N factor and summation term don't matter since we only have RI.
+
+g_Y_it = dat %>% filter(lfdivlaw == 1976 & year == 1980) %>% pull(div_rate) %>% as.numeric
+
+g_Y_ig1 = dat %>% filter(lfdivlaw == 1976 & year == 1975) %>% pull(div_rate) %>% as.numeric
+
+# then G_comp is the subset of states untreated in 1980. 
+
+g_N_G_comp = dat %>% filter(lfdivlaw > 1980) %>% pull(st) %>% unique %>% length
+
+g_Y = 
+  dat %>% 
+  filter(lfdivlaw > 1980 & (year == 1980 | year == 1975)) %>% 
+  mutate(div_rate = ifelse(year == 1975, div_rate * -1, div_rate)) %>% 
+  summarize(div_rate = sum(div_rate)) %>% 
+  pull(div_rate)
+
+g_ATT = g_Y_it - g_Y_ig1 - g_N_G_comp ^ -1 * g_Y
+
+# (0.425)
+
+# note discrepancy even after fiddling with year inclusions/exclusions
+
 # (h)
 
 # Compare overall (?) ATTs between C-S '21 and TWFE.
+
+# first, compute C-S '21 overall ATT
+
+# actually check if C-S provide some trivial command to get the same thing
+
+
+
+# grab TWFE ATT
+
+mod_e$coefficients[[1]]
 
 # (i)
 
