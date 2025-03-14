@@ -268,8 +268,6 @@ ggdid(mod_i_dr)
 
 # (j)
 
-# (i) but with borusyak et al. '24 with didimputation, with and without log_income included via interaction with year fixed effects in the model for Y(0).
-
 # Without log_income. Note that the arguments to first_stage and cluster_var are equivalent to defaults.
 
 mod_j_1 = 
@@ -284,6 +282,8 @@ mod_j_1 =
                  cluster_var = "st_numeric") %>% 
   mutate(model = "Without Covariates")
 
+# With log_income.
+
 mod_j_2 = 
   did_imputation(data = dat,
                  yname = "div_rate",
@@ -295,6 +295,8 @@ mod_j_2 =
                  pretrends = -5:-1,
                  cluster_var = "st_numeric") %>% 
   mutate(model = "With Interaction Covariate")
+
+# Get estimates out and visualize.
 
 mod_j = 
   bind_rows(mod_j_1, mod_j_2) %>% 
