@@ -6,6 +6,7 @@
 
 library(tidyverse)
 library(ggpubr)
+library(stargazer)
 
 # (a)
 
@@ -38,7 +39,7 @@ ggsave("output/20250314_PS4_2_a.png",
        vis_a,
        dpi = 300,
        width = 4.5,
-       height = 5)
+       height = 4)
 
 # (b)
 
@@ -221,14 +222,19 @@ dat_weights = full_join(dat_weights_c, dat_weights_e) %>% mutate(weights_d = wei
 
 # (f)
 
-# ATT by DD.
+# ATT by DD. Let's use Callaway and Sant'Anna's estimator, for overkill.
 
-dat = dat %>% mutate(treatment = ifelse(country == "Sweden" & year > 1989, 1, 0))
+dat = dat %>% mutate(treatment = ifelse(country == "Sweden", 1990, 9999))
 
 # Note the authors' comment that their predictor variables for weighting are endogenous to the outcome.
 
-# And note that we have too few countries for meaningful clustering (or something -- clustering has nonsense results.)
-
-mod_f <- plm::plm(data = dat, CO2_transport_capita ~ treatment, index = c("country", "year"))
-
-summary(mod_f)
+mod_dd = 
+  did::att_gt(data = dat,
+              yname = "CO2_transport_capita",
+              idname = "Countryno",
+              gname = "treatment",
+              tname = "year",
+              xformla = ~ 1,
+              # clustervars = "Countryno",
+              est_method = "reg") %>% 
+  did::aggte(type = "group")

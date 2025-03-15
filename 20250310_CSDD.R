@@ -130,9 +130,15 @@ dat = dat %>% filter(st != "AK" & st != "OK")
 
 mod_e <- plm(data = dat, div_rate ~ unilateral, index = c("st", "year"))
 
-coeftest(mod_e, vcov = vcovHC, type = "HC1")
+mod_e_cluster = coeftest(mod_e, vcov = vcovHC, type = "HC1", save = TRUE)
 
-# stargazer or something
+stargazer(mod_e, 
+          coef = list("unilateral" = mod_e_cluster[1, 1]),
+          se = list("unilateral" = mod_e_cluster[1, 2]),
+          t = list("unilateral" = mod_e_cluster[1, 3]),
+          p = list("unilateral" = mod_e_cluster[1, 4]),
+          type = "html", 
+          out = "output/20250314_PS4_1_e.html")
 
 # (f)
 
@@ -170,11 +176,6 @@ vis_f =
   geom_histogram(aes(x = att)) +
   facet_wrap(~ which)
 
-# Questions:
-#  Is this the right call to did?
-#  Are sample means hand-calculated for this exercise?
-#  Are "overall" ATTs really the (weighted?) mean of all values for ATT(g, t)
-
 # (g)
 
 # Get ATT(1976, 1980) with sample means.
@@ -187,20 +188,13 @@ dat_f %>% filter(group == 1976 & t == 1980) %>% pull(att)
 
 #  Count units in 1976 treatment group.
 
-dat %>% distinct(st, lfdivlaw) %>% filter(lfdivlaw == 1976) %>% nrow # It's just Rhode Island!
+dat %>% distinct(st, lfdivlaw) %>% filter(lfdivlaw == 1976) %>% nrow # It's just Rhode Island.
 
-# AT T(g, t) is the mean change in group g between period t and the period immediately
-# before treatment is received (g − 1) to the mean change over the same period for all units
-# in “clean” comparison groups
-
-# so Y_i, t is just div_rate for RI in 1980 (i in t). g - 1 is just 1975. 
-# the 1/N factor and summation term don't matter since we only have RI.
+#  Set up terms for the expression to estimate ATT. This is a mess.
 
 g_Y_it = dat %>% filter(lfdivlaw == 1976 & year == 1980) %>% pull(div_rate) %>% as.numeric
 
 g_Y_ig1 = dat %>% filter(lfdivlaw == 1976 & year == 1975) %>% pull(div_rate) %>% as.numeric
-
-# then G_comp is the subset of states untreated in 1980. 
 
 g_N_G_comp = dat %>% filter(lfdivlaw > 1980) %>% pull(st) %>% unique %>% length
 
@@ -210,6 +204,9 @@ g_Y =
   mutate(div_rate = ifelse(year == 1975, div_rate * -1, div_rate)) %>% 
   summarize(div_rate = sum(div_rate)) %>% 
   pull(div_rate)
+
+
+#  Estimate ATT.
 
 g_ATT = g_Y_it - g_Y_ig1 - g_N_G_comp ^ -1 * g_Y
 
@@ -235,8 +232,6 @@ mod_e$coefficients[[1]]
 
 # (i)
 
-# estimate and plot event study
-
 mod_i = 
   mod_f %>% 
   aggte(type = "dynamic",
@@ -245,9 +240,7 @@ mod_i =
 
 summary(mod_i)
 
-ggdid(mod_i)
-
-# same but with log_income in the picture and doubly robust estimator
+vis_i = ggdid(mod_i) + scale_y_continuous(limits = c(-1.5, 1)) + theme(plot.title = element_blank())
 
 mod_i_dr = 
   att_gt(data = dat,
@@ -264,7 +257,14 @@ mod_i_dr =
 
 summary(mod_i_dr)
 
-ggdid(mod_i_dr)
+vis_i_dr = ggdid(mod_i_dr) + scale_y_continuous(limits = c(-1.5, 1)) + theme(plot.title = element_blank())
+
+vis_i_both = ggarrange(vis_i, vis_i_dr, nrow = 1)
+
+ggsave("output/20250314_PS4_1i.png",
+       vis_i_both,
+       dpi = 300,
+       width = 6.5)
 
 # (j)
 
@@ -282,6 +282,10 @@ mod_j_1 =
                  cluster_var = "st_numeric") %>% 
   mutate(model = "Without Covariates")
 
+tab_j_1 = mod_j_1 %>% filter(term %in% (-5:5 %>% as.character)) %>% mutate(across(3:6, ~round(., 3))) %>% gt
+
+gtsave(tab_j_1, "output/20250314_PS4_1j_1.png")
+
 # With log_income.
 
 mod_j_2 = 
@@ -295,6 +299,10 @@ mod_j_2 =
                  pretrends = -5:-1,
                  cluster_var = "st_numeric") %>% 
   mutate(model = "With Interaction Covariate")
+
+tab_j_2 = mod_j_2 %>% filter(term %in% (-5:5 %>% as.character)) %>% mutate(across(3:6, ~round(., 3))) %>% gt
+
+gtsave(tab_j_2, "output/20250314_PS4_1j_2.png")
 
 # Get estimates out and visualize.
 
@@ -317,3 +325,8 @@ vis_j =
   labs(x = "Event Time", y = "Estimate") +
   theme_pubr() +
   theme(legend.position = "none")
+
+ggsave("output/20250314_PS4_2j_3.png",
+       vis_j,
+       dpi = 300,
+       width = 6.5)
