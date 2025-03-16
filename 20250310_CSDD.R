@@ -10,6 +10,7 @@ library(plm)
 library(lmtest)
 library(did)
 library(didimputation)
+library(stargazer)
 
 # Data
 
@@ -128,7 +129,7 @@ dat = dat %>% filter(st != "AK" & st != "OK")
 
 # Run TWFE on state and year. Cluster on state for appropriate standard errors.
 
-mod_e <- plm(data = dat, div_rate ~ unilateral, index = c("st", "year"))
+mod_e <- plm(data = dat, div_rate ~ unilateral, effect = "twoways", index = c("st", "year"))
 
 mod_e_cluster = coeftest(mod_e, vcov = vcovHC, type = "HC1", save = TRUE)
 
