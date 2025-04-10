@@ -24,7 +24,7 @@ gen cigarettes = packs * 20
 
 sum
 
-*  Estimate.
+* (d)
 
 poisson packs i.d
 
@@ -33,4 +33,6 @@ margins
 * mlexp
 
 * nl
+
+* (f)
 
