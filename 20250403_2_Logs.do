@@ -31,6 +31,8 @@ reg cigs_log1 i.college age income
 
 * (d)
 
+gen packs = cigs / 20
+
 gen packs_arcsinh = asinh(packs)
 
 reg packs_arcsinh i.college age income
@@ -41,11 +43,16 @@ reg packs_log1 i.college age income
 
 * (e)
 
-* Poisson model goes here.
+poisson cigs i.college age income
+
+poisson packs i.college age income
 
 * (f)
 
-* Extensive margin by OLS goes here.
+gen cigs_indicator = 0
+replace cigs_indicator = 1 if cigs > 0
+
+reg cigs_indicator i.college age income
 
 * (g)
 
@@ -57,8 +64,8 @@ reg cigs_log1 i.college age income
 reg packs_arcsinh i.college age income
 reg packs_log1 i.college age income
 
-* Poisson
-* Extensive margin
+poisson cigs i.college age income
+poisson packs i.college age income
 
 * (h)
 
