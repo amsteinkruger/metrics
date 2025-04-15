@@ -1,5 +1,7 @@
 * Problem Set 1
 
+log using 20250414_Log, append
+
 * (2)
 
 clear all
@@ -15,7 +17,9 @@ sum
 
 sum cigs
 
-histogram cigs
+histogram cigs, frequency scheme(s1mono)
+
+graph export "output/20250413_PS1_2a.png", width(1350) height(1350) replace
 
 * (b)
 
@@ -32,7 +36,6 @@ reg cigs_log1 i.college age income
 * (d)
 
 gen packs = cigs / 20
-
 gen packs_arcsinh = asinh(packs)
 
 reg packs_arcsinh i.college age income
@@ -44,7 +47,6 @@ reg packs_log1 i.college age income
 * (e)
 
 poisson cigs i.college age income
-
 poisson packs i.college age income
 
 * (f)
