@@ -2,11 +2,11 @@
 
 log using 20250503_Log, replace
 
+set iterlog off
+
 * (4)
 
 clear all
-
-set iterlog off
 
 use "data/cps91.dta"
 
