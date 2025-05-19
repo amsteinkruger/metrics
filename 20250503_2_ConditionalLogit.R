@@ -5,9 +5,18 @@
 # Packages
 
 library(tidyverse)
-library(haven)
 library(ggpubr)
+library(haven)
+library(logitr)
 
 # Data
 
-read_dta("data/FIAPlots_CC.dta")
+dat = read_dta("data/FIAPlots_CC.dta")
+
+# (a)
+
+model = logitr(data = dat, 
+               outcome = "d", 
+               obsID = "id", 
+               pars = "r",
+               robust = TRUE)

@@ -4,25 +4,6 @@
 
 set iterlog off
 
-* Preamble
-
-clear all
-
-use "data/FIAPlots_CC_WideForm.dta"
-
-*  Unit-Varying Regressors
-
-table rpchoice, contents(N tmean_gs mean tmean_gs mean precip_gs)
-
-*  Unit-Invariant (Choice-Specific) Regressors
-
-table rpchoice, contents(mean rdf mean rfir mean rhem mean rpp mean rhw)
-
-*  Multinomial Logit
-
-mlogit rpchoice tmean_gs precip_gs, baseoutcome(1) 
-margins, dydx(*) 
-
 * (2)
 * (a)
 
@@ -31,51 +12,30 @@ clear all
 use "data/FIAPlots_CC.dta"
 
 cmset id rp
-cmchoiceset
-cmtab, choice(d)
-cmsummarize tmean_gs precip_gs min12 max08, choice(d) statistics(mean)
+cmclogit d r [pweight = expfactor], basealternative(hw)
 
-cmclogit d r [pweight = expfactor], basealternative(os) // does r need to be specific as case-invariant, choice-varying?
+* (b)
 
+* Find the range of rents for cases where Douglas fir is chosen.
+
+summarize r if choice_df == 1
+
+* Check marginal effect at mean for Douglas fir. (Note that this doesn't match the Excel result.)
+
+margins, dydx(r) outcome(df) alternative(df) atmeans
 
 * (d)
 
+clear all
 
+use "data/FIAPlots_CC_WideForm.dta"
 
-*** reference
+mlogit rpchoice precip_gs, baseoutcome(6) 
 
-*********************************************************************************************
-*Conditional logit - data in long form (FIAPlots_CC.dta)
-*Code for discrete-choice estimation of forest replanting decisions
-*For Stata 16 and up - cmclogit command
-*tabulate choice set possibilities
-*use FIAPlots_CC.dta
-cmset id rp
-cmchoiceset
+* Find the range of precipitation.
 
-*tabluate chosen alternatives
-cmtab, choice(d)
+summarize precip_gs
 
-*summarize climate variables by chosen alternatives
-cmsummarize tmean_gs precip_gs min12 max08, choice(d) statistics(mean)
+* Check marginal effect just for reference.
 
-*Code for simple conditional logit model of replanting after clear-cut, with rent as only indep variable
-cmset id rp
-cmclogit d r [pweight = expfactor], basealternative(os)
-margins, dydx(r)
-
-
-*Code for logit model of replanting after clear-cut, used for Hashida and Lewis (2022) Resource and Energy Economics
-cmset id rp
-cmclogit d r [pweight = expfactor], casevars(tmean_gs precip_gs min12 max08 elev) basealternative(os)
-
-*Average marginal effects of tmean_gs on all probabilities
-margins, dydx(tmean_gs) 
-
-*Marginal effects of Douglas-fir rent on all probabilities at means
-margins, dydx(r) outcome(df fir hem pp hw os) alternative(df) atmeans
-
-*Predicted probabilities
-predict p
-bys rp: sum p
-**********************************************************************************************
+margins, dydx(*) 
