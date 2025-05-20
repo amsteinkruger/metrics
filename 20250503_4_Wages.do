@@ -1,6 +1,6 @@
 * Problem Set 3
 
-log using 20250503_Log, replace
+log using 20250503_Log, append
 
 set iterlog off
 
