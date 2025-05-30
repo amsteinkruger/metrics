@@ -1,21 +1,26 @@
 (1)
 
-CV_4, SE of CV_4 are results for four-fold CV and not for the fourth CV w/in four-fold CV, right?
+CV_4, SE of CV_4 are results for four-fold CV and not for the fourth CV w/in four-fold CV, right? (yes)
 
 (2)
 
 Confirming set of x1-x6, products, cross-products. What's the right approach to cross-product computation in Stata?
  - Stata docs detail application of crossprod() in computing coefficient matrices but not in regular regression commands
+
+ - (good as-is, c.($x)##c.($x) has both products and cross-products; cross-products are own?)
+
 Check results for adaptive lasso.
-Check that selection of regressors significant at alpha = 0.05 is correct.
+Check that selection of regressors significant at alpha = 0.05 is correct. (yep, for OLS w/ n = 10000)
 
 (3)
 
-For change in sample size, is 10000->1000>100 still enough?
-Note typo in xinteract global
-Compare xporegress with decreasing sample sizes or only at 10000-10000?
+For change in sample size, is 10000->1000>100 still enough? (yes)
+Note typo in xinteract global (done)
+Compare xporegress with decreasing sample sizes or only at 10000-10000? (with decreasing sample sizes)
 
 (4)
+
+(see notes on paper)
 
  - Replicating most of Section 28.16 as well as 28.17? Also, all three panels of Fig. 28.2 or only (c) as in Section 28.17?
  - "Setting" theta hat is an estimator or a generic statement of an estimator or neither?
@@ -32,6 +37,8 @@ Compare xporegress with decreasing sample sizes or only at 10000-10000?
 
 (5)
 
+(see notes on paper)
+
 Is the idea here to work all the way through the process of model selection and prediction?
 
 Is a partial linear model as in (3) reasonable for this?
@@ -40,4 +47,4 @@ Is a partial linear model as in (3) reasonable for this?
 
 In (b), are the robustness checks ex post to show that our "devised" model is the right choice?
 
-In (c), no interactions needed, right?
+In (c), no interactions needed, right? (yep)
