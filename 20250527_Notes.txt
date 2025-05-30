@@ -1,39 +1,7 @@
-(1)
-
-CV_4, SE of CV_4 are results for four-fold CV and not for the fourth CV w/in four-fold CV, right? (yes)
-
-(2)
-
-Confirming set of x1-x6, products, cross-products. What's the right approach to cross-product computation in Stata?
- - Stata docs detail application of crossprod() in computing coefficient matrices but not in regular regression commands
-
- - (good as-is, c.($x)##c.($x) has both products and cross-products; cross-products are own?)
-
-Check results for adaptive lasso.
-Check that selection of regressors significant at alpha = 0.05 is correct. (yep, for OLS w/ n = 10000)
-
 (3)
 
 For change in sample size, is 10000->1000>100 still enough? (yes)
-Note typo in xinteract global (done)
 Compare xporegress with decreasing sample sizes or only at 10000-10000? (with decreasing sample sizes)
-
-(4)
-
-(see notes on paper)
-
- - Replicating most of Section 28.16 as well as 28.17? Also, all three panels of Fig. 28.2 or only (c) as in Section 28.17?
- - "Setting" theta hat is an estimator or a generic statement of an estimator or neither?
- - "Class of model selection estimators" is a generic statement of an estimator of estimators or of models?
- - Point of Section 28.16 is that, depending on parameters lambda and K, model selection might make outcomes worse, but
-    - Does that hold with crossfold validation as a method that varies sample sizes? Could varying sample size show conditions?
-    - Hansen states "Unfortunately it is impossible to known a priori the appropriate models." A priori to selection or to what?
- - Point of Section 28.17 is that inference of B_1_hat could be impacted by model selection. Then
-    - is that impact ex post to model selection (w/ reference to a priori question above)?
-    - is preceding statement about inference for B_2 something we should replicate in detail?
-    - hang on, so the real point is that the impact of model selection on B_1_hat depends on rho (corr(B_1, B_2))?
-    - and then impact varies with relative magnitudes of B_1, B_2 (small or large B_2 fine, intermediate values distorting)
- - Generally, is Fig. 28.2 (c) really related to (a)-(b) or are they just grouped for a more convenient layout in print?
 
 (5)
 

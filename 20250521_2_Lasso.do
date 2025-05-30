@@ -1,14 +1,14 @@
 * Problem Set 4
 
-* log using 20250521_Log, append
+* (2)
+
+* log using 20250521_Log, replace
 
 clear all
 
 set iterlog off
 
-* (2)
-
-* Copy/Paste
+* Begin Copy/Paste
 
 set obs 10000
 set seed 10101
@@ -21,11 +21,11 @@ matrix SIGMA = (1,rho,rho \ rho,1,rho \ rho,rho,1)
 drawnorm x4 x5 x6, means(MU) cov(SIGMA)
 generate y = 1 + 2*x1 + 3*x2 + 2*x1*x2 + 2*x4 + 3*x5 + 2*x4*x5 + rnormal(0, 10)
 
-* Remember to store estimates for tabulation.
-
-* Adaptive Lasso
+* End Copy/Paste
 
 gen id = _n // Count rows for easier drops.
+
+* Adaptive Lasso
 
 vl create x = (x1 x2 x3 x4 x5 x6)
 
@@ -39,12 +39,16 @@ reg y c.($x)##c.($x) // n = 10000
 reg y c.($x)##c.($x) if id < 1001 // n = 1000
 reg y c.($x)##c.($x) if id < 101 // n = 100
 
-* OLS (On X significant at a = 0.05)
+* OLS (on X significant at n = 10000 for a = 0.05)
 
-vl create x_significant = (x1 x2 x4 x5)
-
-reg y $x_significant c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5
-
-* Is the point of the prompt to check OLS results w/ decreasing n or w/ decreasing P?
+reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5 // n = 10000
+reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5  if id < 1001 // n = 1000
+reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5 if id < 101 // n = 100
 
 * Tabulate
+
+* use stored estimates; rows are vars, columns are models
+
+* problems: 
+*  get list of kept vars out of lasso
+*  get different lists of stored variables to play nicely and take binary representation (kept, not kept) for each var

@@ -1,6 +1,11 @@
-# Problem Set 4
+---
+title: "AEC 626 | PS4 | (4) Inference"
+author: "Andrew Steinkruger"
+format: pdf
+editor: visual
+---
 
-# (4)
+```{r work}
 
 # Packages
 
@@ -24,8 +29,6 @@ value = 3.84
 Z = matrix(1, n, 1)
 
 # Simulation
-
-Time_0 = Sys.time()
 
 dat = 
   expand.grid(run = run_vec, rho = rho_vec, b_2 = beta_vec) %>% 
@@ -63,14 +66,17 @@ dat =
            pmap(function(t_1_Short, t_1_Long, t_2_Long) ifelse(t_2_Long > value, t_1_Long, t_1_Short)),
          Coverage = t_Check %>% map(~ .x < value))
 
-Time_1 = Sys.time()
-
 dat_less = 
   dat %>% 
   unnest(Coverage) %>% 
   group_by(rho, b_2) %>% # Group to compute coverage probabilities.
   summarize(Probability = mean(Coverage)) %>% 
   ungroup
+
+head(dat_less)
+```
+
+```{r table}
 
 # Tabulate
 
@@ -85,6 +91,10 @@ tab =
 
 gtsave(filename = "output/20250521_PS4_4_Table.png",
        data = tab)
+
+```
+
+```{r figure}
 
 # Visualize
 
@@ -121,3 +131,5 @@ ggsave("output/20250521_PS4_4_Plot.png",
        dpi = 300,
        width = 3,
        height = 4)
+
+```
