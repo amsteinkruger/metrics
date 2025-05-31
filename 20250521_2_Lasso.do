@@ -29,26 +29,35 @@ gen id = _n // Count rows for easier drops.
 
 vl create x = (x1 x2 x3 x4 x5 x6)
 
-lasso linear y c.($x)##c.($x), selection(adaptive) rseed(10101) // n = 10000
-lasso linear y c.($x)##c.($x) if id < 1001, selection(adaptive) rseed(10101) // n = 1000
-lasso linear y c.($x)##c.($x) if id < 101, selection(adaptive) rseed(10101) // n = 100
+qui lasso linear y c.($x)##c.($x), selection(adaptive) rseed(10101) // n = 10000
+estimates store Lasso_10000
+qui lasso linear y c.($x)##c.($x) if id < 1001, selection(adaptive) rseed(10101) // n = 1000
+estimates store Lasso_1000
+qui lasso linear y c.($x)##c.($x) if id < 101, selection(adaptive) rseed(10101) // n = 100
+estimates store Lasso_100
 
-* OLS
+* OLS, All Variables
+
+*  Use output from the first OLS model to select variables for the fourth through sixth OLS models. 
 
 reg y c.($x)##c.($x) // n = 10000
-reg y c.($x)##c.($x) if id < 1001 // n = 1000
-reg y c.($x)##c.($x) if id < 101 // n = 100
+estimates store OLS_More_10000
+qui reg y c.($x)##c.($x) if id < 1001 // n = 1000
+estimates store OLS_More_1000
+qui reg y c.($x)##c.($x) if id < 101 // n = 100
+estimates store OLS_More_100
 
-* OLS (on X significant at n = 10000 for a = 0.05)
+* OLS, Selected Variables
 
-reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5 // n = 10000
-reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5  if id < 1001 // n = 1000
-reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5 if id < 101 // n = 100
+qui reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5 // n = 10000
+estimates store OLS_Less_10000
+qui reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5  if id < 1001 // n = 1000
+estimates store OLS_Less_1000
+qui reg y x1 x2 x4 x5 c.x1#c.x2 c.x2#c.x4 c.x3#c.x4 c.x4#c.x5 if id < 101 // n = 100
+estimates store OLS_Less_100
 
 * Tabulate
 
-* use stored estimates; rows are vars, columns are models
-
-* problems: 
-*  get list of kept vars out of lasso
-*  get different lists of stored variables to play nicely and take binary representation (kept, not kept) for each var
+lassocoef Lasso*, display(coef, postselection) vsquish
+estimates table OLS_More*, vsquish
+estimates table OLS_Less*, vsquish
