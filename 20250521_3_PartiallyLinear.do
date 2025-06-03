@@ -29,18 +29,33 @@ global rlist2 $xinteract c.($xlist2)##c.($xlist2)
 
 gen id = _n // Count rows for easier drops.
 
-poregress y x1, controls($xlist2 $x1interact $rlist2) // n = 10000
-poregress y x1 if id < 1001, controls($xlist2 $x1interact $rlist2) // n = 1000
-poregress y x1 if id < 101, controls($xlist2 $x1interact $rlist2) // n = 100
+qui poregress y x1, controls($xlist2 $x1interact $rlist2) // n = 10000
+estimates store po_10000
+qui poregress y x1 if id < 1001, controls($xlist2 $x1interact $rlist2) // n = 1000
+estimates store po_1000
+qui poregress y x1 if id < 101, controls($xlist2 $x1interact $rlist2) // n = 100
+estimates store po_100
 
 * OLS
 
-reg y x1 $xlist2 $x1interact $rlist2
+qui reg y x1 $xlist2 $x1interact $rlist2 // n = 10000
+estimates store ols_10000
+qui reg y x1 $xlist2 $x1interact $rlist2 if id < 1001 // n = 1000
+estimates store ols_1000
+qui reg y x1 $xlist2 $x1interact $rlist2 if id < 101 // n = 100
+estimates store ols_100
 
 * Cross-Fit Partialing-Out Lasso Linear Regression
 
-xporegress y x1, controls($xlist2 $x1interact $rlist2)
-
-* Run xporgress on n = 10000 or on decreasing n?
+qui xporegress y x1, controls($xlist2 $x1interact $rlist2) // n = 10000
+estimates store xpo_10000
+qui xporegress y x1 if id < 1001, controls($xlist2 $x1interact $rlist2) // n = 1000
+estimates store xpo_1000
+qui xporegress y x1 if id < 101, controls($xlist2 $x1interact $rlist2) // n = 100
+estimates store xpo_100
 
 * Tabulate
+
+estimates table po_*, se
+estimates table ols_*, se keep(x1)
+estimates table xpo_*, se

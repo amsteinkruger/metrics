@@ -11,50 +11,38 @@ set iterlog off
 use "data/PS4.dta"
 
 vl create x = (x1 x2 x3 x4 x5 x6)
+vl create x_controls = (x2 x3 x4 x5 x6)
 
 * (a)
 
+qui lasso linear y c.($x)##c.($x), rseed(0112358)
+estimates store a_Lasso
+
+qui lasso linear y c.($x)##c.($x), rseed(0112358) selection(adaptive)
+estimates store a_Adaptive
+
+qui elasticnet linear y c.($x)##c.($x), rseed(0112358)
+estimates store a_ElasticNet
+
+lassocoef a_*, display(coef, postselection) vsquish
+
 * (b)
+
+qui dsregress y x1, controls($x_controls)
+estimates store b_Double
+
+qui poregress y x1, controls($x_controls)
+estimates store b_Partial
+
+qui xporegress y x1, controls($x_controls)
+estimates store b_Cross
+
+estimates table b_*, vsquish
+
+lassocoef (b_Double, for(y)) (b_Partial, for(y)) (b_Cross, for(y) xfold(1)), display(coef, postselection)
+
+lassocoef (b_Double, for(x1)) (b_Partial, for(x1)) (b_Cross, for(x1) xfold(1)), display(coef, postselection)
 
 * (c)
 
 reg y $x
-
-* Reference
-
-* Copy/Paste
-
-set obs 10000
-set seed 10101
-matrix MU = (0,0,0)
-scalar rho = 0.95
-matrix SIGMA = (1,rho,rho \ rho,1,rho \ rho,rho,1)
-drawnorm x1 x2 x3, means(MU) cov(SIGMA)
-scalar rho = 0.2
-matrix SIGMA = (1,rho,rho \ rho,1,rho \ rho,rho,1)
-drawnorm x4 x5 x6, means(MU) cov(SIGMA)
-generate y = 1 + 2*x1 + 3*x2 + 2*x1*x2 + 2*x4 + 3*x5 + 2*x4*x5 + rnormal(0, 10)
-
-global xlist2 x2 x3 x4 x5 x6
-global x1interact c.x1#c.($xlist2)
-global rlist2 $xinteract c.($xlist2)##c.($xlist2)
-
-* Partialing-Out Lasso Linear Regression
-
-gen id = _n // Count rows for easier drops.
-
-poregress y x1, controls($xlist2 $x1interact $rlist2) // n = 10000
-poregress y x1 if id < 1001, controls($xlist2 $x1interact $rlist2) // n = 1000
-poregress y x1 if id < 101, controls($xlist2 $x1interact $rlist2) // n = 100
-
-* OLS
-
-reg y x1 $xlist2 $x1interact $rlist2
-
-* Cross-Fit Partialing-Out Lasso Linear Regression
-
-xporegress y x1, controls($xlist2 $x1interact $rlist2)
-
-* Run xporgress on n = 10000 or on decreasing n?
-
-* Tabulate
