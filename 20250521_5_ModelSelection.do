@@ -1,12 +1,12 @@
+log using 20250521_Log, append
+
 * Problem Set 4
 
-* log using 20250521_Log, append
+* (5)
 
 clear all
 
 set iterlog off
-
-* (5)
 
 use "data/PS4.dta"
 

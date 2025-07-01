@@ -1,8 +1,8 @@
+log using 20250521_Log, replace
+
 * Problem Set 4
 
 * (2)
-
-* log using 20250521_Log, replace
 
 clear all
 
